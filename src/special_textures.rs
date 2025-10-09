@@ -142,7 +142,7 @@ pub fn load_special_texture(view: &mut EmbeddedTextureLoadView, material: &Stand
 		let mut frames = Vec::new();
 		let mut frame_num = 0;
 		while let Ok(frame_name) = EmbeddedTextureName::from_str(&format!("+{frame_num}{name_content}"))
-			&& let Some((_, frame_handle)) = embedded_textures.get(&frame_name)
+			&& let Some((_, frame_handle)) = embedded_textures.get(frame_name.as_str())
 		{
 			frames.push(frame_handle.clone());
 			frame_num += 1;

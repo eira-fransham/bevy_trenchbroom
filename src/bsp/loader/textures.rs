@@ -6,11 +6,11 @@ use wgpu_types::{Extent3d, TextureDimension, TextureFormat};
 use crate::*;
 
 pub struct EmbeddedTextures {
-	pub images: HashMap<EmbeddedTextureName, (Image, Handle<Image>)>,
-	pub textures: HashMap<EmbeddedTextureName, BspEmbeddedTexture>,
+	pub images: HashMap<String, (Image, Handle<Image>)>,
+	pub textures: HashMap<String, BspEmbeddedTexture>,
 }
 
-fn is_cutout_texture(name: &EmbeddedTextureName) -> bool {
+fn is_cutout_texture(name: &str) -> bool {
 	name.as_bytes()[0] == b'{'
 }
 
@@ -24,7 +24,7 @@ impl EmbeddedTextures {
 			None => QUAKE_PALETTE.clone(),
 		};
 
-		let images: HashMap<EmbeddedTextureName, (Image, Handle<Image>)> = ctx
+		let images: HashMap<String, (Image, Handle<Image>)> = ctx
 			.data
 			.textures
 			.iter()
@@ -34,7 +34,7 @@ impl EmbeddedTextures {
 				let Some(data) = &texture.data.full else { unreachable!() };
 				let name = texture.header.name;
 
-				let is_cutout_texture = is_cutout_texture(&name);
+				let is_cutout_texture = is_cutout_texture(name.as_str());
 
 				let palette = texture.data.palette.as_ref().unwrap_or(&palette);
 
@@ -62,11 +62,11 @@ impl EmbeddedTextures {
 
 				let image_handle = ctx.load_context.get_label_handle(format!("{TEXTURE_PREFIX}{name}"));
 
-				(name, (image, image_handle))
+				(name.as_str().to_string(), (image, image_handle))
 			})
 			.collect();
 
-		let mut textures: HashMap<EmbeddedTextureName, BspEmbeddedTexture> = HashMap::with_capacity_and_hasher(images.len(), default());
+		let mut textures: HashMap<String, BspEmbeddedTexture> = HashMap::with_capacity_and_hasher(images.len(), default());
 
 		for (name, (image, image_handle)) in &images {
 			#[cfg(feature = "client")]
@@ -91,7 +91,7 @@ impl EmbeddedTextures {
 			.await;
 
 			textures.insert(
-				*name,
+				name.clone(),
 				BspEmbeddedTexture {
 					image: image_handle.clone(),
 					material,
@@ -103,7 +103,7 @@ impl EmbeddedTextures {
 	}
 
 	/// Loads the placeholder images, and returns the embedded textures.
-	pub fn finalize(self, ctx: &mut BspLoadCtx) -> HashMap<EmbeddedTextureName, BspEmbeddedTexture> {
+	pub fn finalize(self, ctx: &mut BspLoadCtx) -> HashMap<String, BspEmbeddedTexture> {
 		for (name, (image, _)) in self.images {
 			ctx.load_context.add_labeled_asset(format!("{TEXTURE_PREFIX}{name}"), image);
 		}

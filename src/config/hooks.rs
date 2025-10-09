@@ -1,8 +1,5 @@
 #[cfg(feature = "bsp")]
-use qbsp::{
-	BspFormat,
-	data::texture::EmbeddedTextureName,
-};
+use qbsp::{BspFormat, data::texture::EmbeddedTextureName};
 
 use super::*;
 
@@ -47,7 +44,7 @@ pub struct TextureLoadView<'a, 'b> {
 	/// If the map contains embedded textures, this will be a map of texture names to image handles.
 	/// This is useful for things like animated textures.
 	#[cfg(feature = "bsp")]
-	pub embedded_textures: Option<&'a HashMap<EmbeddedTextureName, (Image, Handle<Image>)>>,
+	pub embedded_textures: Option<&'a HashMap<String, (Image, Handle<Image>)>>,
 }
 impl<'a, 'b> TextureLoadView<'a, 'b> {
 	/// Shorthand for adding a material asset with the correct label.
@@ -80,7 +77,7 @@ pub struct EmbeddedTextureLoadView<'a, 'b> {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	
+
 	#[test]
 	fn hook_stack() {
 		let mut hook: Hook<dyn Fn() -> i32 + Send + Sync> = Hook(Arc::new(|| 2));

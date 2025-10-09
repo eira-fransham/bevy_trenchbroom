@@ -37,9 +37,7 @@ pub static TEXTURE_PREFIX: &str = "Texture_";
 /// Quake level loaded from a `.bsp` file.
 #[derive(Asset, Reflect, Debug)]
 pub struct Bsp {
-	/// The main scene of everything put together.
-	pub scene: Handle<Scene>,
-	pub embedded_textures: HashMap<EmbeddedTextureName, BspEmbeddedTexture>,
+	pub embedded_textures: HashMap<String, BspEmbeddedTexture>,
 	#[cfg(feature = "client")]
 	pub lightmap: Option<Handle<AnimatedLighting>>,
 	#[cfg(feature = "client")]
@@ -52,11 +50,20 @@ pub struct Bsp {
 	pub entities: QuakeMapEntities,
 }
 
+/// One individual mesh of a [`BspModel`].
+#[derive(Reflect, Debug)]
+pub struct BspMesh {
+	pub name: String,
+	pub mesh: Handle<Mesh>,
+	pub material: Handle<GenericMaterial>,
+	pub lightmap: Option<Handle<AnimatedLighting>>,
+}
+
 /// Geometry and brushes of a `SolidClass` entity.
 #[derive(Reflect, Debug)]
 pub struct BspModel {
 	/// Maps texture names to mesh handles.
-	pub meshes: Vec<(Option<String>, Handle<Mesh>)>,
+	pub meshes: Vec<BspMesh>,
 
 	/// If the BSP contains the `BRUSHLIST` BSPX lump, or supports built-in brushes, this will be [`Some`] containing a handle to the brushes for this model.
 	pub brushes: Option<GenericBrushListHandle>,
