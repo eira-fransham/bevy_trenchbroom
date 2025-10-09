@@ -109,7 +109,7 @@ pub async fn compute_models<'a, 'lc: 'a>(
 	models
 }
 
-pub fn finalize_models(ctx: &mut BspLoadCtx, models: Vec<InternalModel>, world: &mut World) -> anyhow::Result<Vec<BspModel>> {
+pub fn finalize_models(ctx: &mut BspLoadCtx, models: Vec<InternalModel>) -> anyhow::Result<Vec<BspModel>> {
 	let config = &ctx.loader.tb_server.config;
 
 	let brush_list = match ctx.data.bspx.parse_brush_list(&ctx.data.parse_ctx) {
@@ -130,11 +130,12 @@ pub fn finalize_models(ctx: &mut BspLoadCtx, models: Vec<InternalModel>, world: 
 						.load_context
 						.add_labeled_asset(format!("Model{model_idx}Mesh{mesh_idx}"), model_mesh.mesh);
 
-					if let Some(mesh_entity) = model_mesh.entity {
-						world.entity_mut(mesh_entity).insert(Mesh3d(mesh_handle.clone()));
+					BspMesh {
+						name: model_mesh.texture.name,
+						material: model_mesh.texture.material.clone(),
+						lightmap: model_mesh.texture.lightmap.clone(),
+						mesh: mesh_handle,
 					}
-
-					(model_mesh.texture.name, mesh_handle)
 				})
 				.collect(),
 
@@ -142,7 +143,7 @@ pub fn finalize_models(ctx: &mut BspLoadCtx, models: Vec<InternalModel>, world: 
 				.iter()
 				.find(|model_brushes| model_brushes.model_idx as usize == model_idx)
 				.map(|model_brushes| {
-					let brushes_asset = ctx.load_context.add_labeled_asset(
+					ctx.load_context.add_labeled_asset(
 						format!("Model{model_idx}Brushes"),
 						BspBrushesAsset {
 							brushes: model_brushes
@@ -182,13 +183,7 @@ pub fn finalize_models(ctx: &mut BspLoadCtx, models: Vec<InternalModel>, world: 
 								})
 								.collect(),
 						},
-					);
-
-					if let Some(entity) = model.entity {
-						world.entity_mut(entity).insert(Brushes::Bsp(brushes_asset.clone()));
-					}
-
-					brushes_asset
+					)
 				}),
 		})
 		.collect())

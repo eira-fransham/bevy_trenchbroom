@@ -19,10 +19,9 @@ use irradiance_volume::load_irradiance_volume;
 use lightmap::BspLightmap;
 use models::{compute_models, finalize_models};
 use qmap::QuakeMapEntities;
-use scene::initialize_scene;
 use textures::EmbeddedTextures;
 
-use crate::*;
+use crate::{bsp::lighting::AnimatedLightingHandle, *};
 
 pub(crate) struct BspLoadCtx<'a, 'lc: 'a> {
 	pub loader: &'a BspLoader,
@@ -91,24 +90,53 @@ impl AssetLoader for BspLoader {
 			#[cfg(not(feature = "client"))]
 			let lightmap = None;
 
-			let mut models = compute_models(&mut ctx, &lightmap, &embedded_textures).await;
-
+			let models = compute_models(&mut ctx, &lightmap, &embedded_textures).await;
 			let embedded_textures = embedded_textures.finalize(&mut ctx);
 
-			let mut world = initialize_scene(&mut ctx, &mut models)?;
+			// HACK: This should not be removed entirely! It's just that seismon doesn't need it.
+			// let mut world = initialize_scene(&mut ctx, &mut models)?;
 
-			let bsp_models = finalize_models(&mut ctx, models, &mut world)?;
+			let bsp_models = finalize_models(&mut ctx, models)?;
 
-			#[cfg(feature = "client")]
-			let irradiance_volume = load_irradiance_volume(&mut ctx, &mut world)?;
+			// HACK: Breaks BSP2 support
+			// #[cfg(feature = "client")]
+			// let irradiance_volume = load_irradiance_volume(&mut ctx)?;
+
+			for (model_idx, model) in bsp_models.iter().enumerate() {
+				let mut world = World::new();
+
+				for BspMesh {
+					name,
+					mesh,
+					material,
+					lightmap,
+				} in model.meshes.iter()
+				{
+					if self.tb_server.config.auto_remove_textures.contains(name) {
+						continue;
+					}
+
+					let mut mesh_entity = world.spawn((
+						Name::new(name.clone()),
+						Transform::default(),
+						Mesh3d(mesh.clone()),
+						GenericMaterial3d(material.clone()),
+					));
+
+					if let Some(lightmap) = lightmap {
+						mesh_entity.insert(AnimatedLightingHandle(lightmap.clone()));
+					}
+				}
+
+				load_context.add_labeled_asset(format!("Model{model_idx}"), Scene::new(world));
+			}
 
 			Ok(Bsp {
-				scene: load_context.add_labeled_asset("Scene".s(), Scene::new(world)),
 				embedded_textures,
 				#[cfg(feature = "client")]
 				lightmap: lightmap.map(|lm| lm.animated_lighting),
 				#[cfg(feature = "client")]
-				irradiance_volume,
+				irradiance_volume: None,
 				models: bsp_models,
 
 				data,
