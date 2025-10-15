@@ -77,12 +77,12 @@ pub struct TrenchBroomConfig {
 	#[cfg(feature = "bsp")]
 	#[builder(into)]
 	#[default("palette.lmp".into())]
-	pub texture_pallette: PathBuf,
+	pub texture_palette: PathBuf,
 	/// For BSPs.
 	#[cfg(not(feature = "bsp"))]
 	#[builder(into)]
 	#[default("palette.lmp".into())]
-	pub texture_pallette: PathBuf,
+	pub texture_palette: PathBuf,
 
 	/// Patterns to match to exclude certain texture files from showing up in-editor. (Default: [`TrenchBroomConfig::default_texture_exclusions`]).
 	#[builder(into)]

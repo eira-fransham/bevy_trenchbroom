@@ -18,9 +18,9 @@ impl EmbeddedTextures {
 	pub async fn setup<'a, 'lc>(ctx: &mut BspLoadCtx<'a, 'lc>) -> anyhow::Result<Self> {
 		let config = &ctx.loader.tb_server.config;
 
-		// Have to clone `texture_pallette` for the borrow checker. Can't figure out why.
-		let palette = match ctx.load_context.read_asset_bytes(config.texture_pallette.clone()).await.ok() {
-			Some(bytes) => Palette::parse(&bytes).map_err(|err| anyhow!("Parsing palette file {:?}: {err}", config.texture_pallette))?,
+		// Have to clone `texture_palette` for the borrow checker. Can't figure out why.
+		let palette = match ctx.load_context.read_asset_bytes(config.texture_palette.clone()).await.ok() {
+			Some(bytes) => Palette::parse(&bytes).map_err(|err| anyhow!("Parsing palette file {:?}: {err}", config.texture_palette))?,
 			None => QUAKE_PALETTE.clone(),
 		};
 

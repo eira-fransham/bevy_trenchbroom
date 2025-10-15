@@ -9,7 +9,7 @@ use lighting::{AnimatedLightingType, new_animated_lighting_output_image};
 use qbsp::mesh::lightmap::ComputeLightmapAtlasError;
 
 /// Writes lightmaps to target/lightmaps folder
-const WRITE_DEBUG_FILES: bool = true;
+const WRITE_DEBUG_FILES: bool = false;
 
 pub struct BspLightmap {
 	pub animated_lighting: Handle<AnimatedLighting>,
