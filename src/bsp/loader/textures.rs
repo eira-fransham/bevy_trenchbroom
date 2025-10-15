@@ -13,12 +13,12 @@ impl<'d> EmbeddedTextures<'d> {
 	pub async fn setup<'a: 'd, 'lc>(ctx: &mut BspLoadCtx<'a, 'lc>) -> anyhow::Result<Self> {
 		let config = &ctx.loader.tb_server.config;
 
-		let palette = match ctx.load_context.read_asset_bytes(config.texture_pallette.as_path()).await.ok() {
-			Some(bytes) => Palette::parse(&bytes).map_err(|err| anyhow!("Parsing palette file {:?}: {err}", config.texture_pallette))?,
+		let palette = match ctx.load_context.read_asset_bytes(config.texture_palette.clone()).await.ok() {
+			Some(bytes) => Palette::parse(&bytes).map_err(|err| anyhow!("Parsing palette file {:?}: {err}", config.texture_palette))?,
 			None => QUAKE_PALETTE.clone(),
 		};
 
-		let images: HashMap<&str, (Image, Handle<Image>)> = ctx
+		let images: HashMap<&'d str, (Image, Handle<Image>)> = ctx
 			.data
 			.textures
 			.iter()

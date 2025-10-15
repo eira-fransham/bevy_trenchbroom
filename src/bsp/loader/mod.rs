@@ -85,6 +85,7 @@ impl AssetLoader for BspLoader {
 
 			let embedded_textures = EmbeddedTextures::setup(&mut ctx).await?;
 
+			// HACK: Lightmaps seem to crash Bevy after a few seconds(?)
 			#[cfg(feature = "client")]
 			let lightmap = BspLightmap::compute(&mut ctx)?;
 			#[cfg(not(feature = "client"))]
@@ -119,6 +120,8 @@ impl AssetLoader for BspLoader {
 					let mut mesh_entity = world.spawn((
 						Name::new(name.clone()),
 						Transform::default(),
+						// TODO: Needed because of lack of `fix_gltf_coordinate_system`?
+						// .rotate_y(PI),
 						Mesh3d(mesh.clone()),
 						GenericMaterial3d(material.clone()),
 					));

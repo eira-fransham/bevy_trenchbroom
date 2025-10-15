@@ -87,7 +87,7 @@ pub struct TrenchBroomConfig {
 	#[cfg(feature = "bsp")]
 	#[builder(into)]
 	#[default("palette.lmp".into())]
-	pub texture_pallette: PathBuf,
+	pub texture_palette: PathBuf,
 	/// For BSPs.
 	#[cfg(not(feature = "bsp"))]
 	#[builder(into)]

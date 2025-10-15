@@ -1,7 +1,7 @@
 use bevy::{image::ImageSampler, prelude::*};
 use bevy_materialize::prelude::*;
 
-use crate::{geometry::MapGeometry, TrenchBroomServer};
+use crate::{TrenchBroomServer, geometry::MapGeometry};
 
 use super::ConfigPlugin;
 
@@ -12,29 +12,27 @@ fn samplers_eq(a: &ImageSampler, b: &ImageSampler) -> bool {
 
 impl ConfigPlugin {
 	/// Sets the samplers of any images within the materials within entities with [`MapGeometry`] components to [`TrenchBroomConfig::texture_sampler`](super::TrenchBroomConfig::texture_sampler).
-	/// 
+	///
 	/// This is pretty hacky, but i can't think of a better solution. Oh well!
 	pub fn set_image_samplers(
 		mut commands: Commands,
 		map_geometry_query: Query<&GenericMaterial3d, With<MapGeometry>>,
 		generic_materials: Res<Assets<GenericMaterial>>,
-		mut image_events: EventReader<AssetEvent<Image>>,
+		mut image_events: MessageReader<AssetEvent<Image>>,
 		asset_server: Res<AssetServer>,
 		tb_server: Res<TrenchBroomServer>,
 	) {
 		if matches!(tb_server.config.texture_sampler, ImageSampler::Default) {
 			return;
 		}
-		
-		if image_events.read().all(|event| {
-			!matches!(
-				event,
-				AssetEvent::Added { .. } | AssetEvent::LoadedWithDependencies { .. }
-			)
-		}) {
+
+		if image_events
+			.read()
+			.all(|event| !matches!(event, AssetEvent::Added { .. } | AssetEvent::LoadedWithDependencies { .. }))
+		{
 			return;
 		}
-	
+
 		for generic_material_3d in &map_geometry_query {
 			if asset_server.load_state(&generic_material_3d.0).is_loading() {
 				warn!(
@@ -45,9 +43,9 @@ impl ConfigPlugin {
 			let Some(generic_material) = generic_materials.get(&generic_material_3d.0) else {
 				continue;
 			};
-	
+
 			let handle = generic_material.handle.clone();
-	
+
 			commands.queue(move |world: &mut World| {
 				let id = handle.id();
 				// We use asset_scope_mut instead of asset_scope, not because we need mutable access to the material—we don't—but because
@@ -60,11 +58,11 @@ impl ConfigPlugin {
 							warn!("Material {id} within GenericMaterial for map geometry isn't loaded.");
 							return;
 						};
-	
+
 						let dyn_struct = material.reflect_ref().as_struct().unwrap(); // ErasedMaterial requires Struct
-	
+
 						let sampler = world.resource::<TrenchBroomServer>().config.texture_sampler.clone();
-	
+
 						for field in dyn_struct.iter_fields() {
 							let Some(image_handle) = field.try_downcast_ref::<Handle<Image>>().map(Handle::id).or_else(|| {
 								field
@@ -73,21 +71,21 @@ impl ConfigPlugin {
 							}) else {
 								continue;
 							};
-	
+
 							// First we check before mutating it to avoid a feedback loop, doing this every frame
 							let Some(image) = world.resource::<Assets<Image>>().get(image_handle) else {
 								continue;
 							};
-	
+
 							if samplers_eq(&image.sampler, &sampler) {
 								continue;
 							}
-	
+
 							let mut image_assets = world.resource_mut::<Assets<Image>>();
 							let Some(image) = image_assets.get_mut(image_handle) else {
 								continue;
 							};
-	
+
 							image.sampler = sampler.clone();
 						}
 					}),

@@ -1,7 +1,7 @@
 use super::*;
 use crate::config::SpawnFnOnce;
 use crate::*;
-use bevy::ecs::component::HookContext;
+use bevy::ecs::lifecycle::HookContext;
 use bevy::{asset::AssetPath, ecs::world::DeferredWorld};
 use bevy_mesh::VertexAttributeValues;
 
@@ -293,12 +293,8 @@ mod tests {
 			geometry::{BrushList, Brushes},
 			qmap::{QuakeMap, loader::QuakeMapLoader},
 		};
-		use bevy::{
-			gltf::GltfPlugin,
-			log::LogPlugin,
-			render::{mesh::MeshPlugin, view::VisibilityClass},
-			scene::ScenePlugin,
-		};
+		use bevy::{camera::visibility::VisibilityClass, gltf::GltfPlugin, log::LogPlugin, scene::ScenePlugin};
+		use bevy_mesh::MeshPlugin;
 
 		#[point_class(
 			model("models/mushroom.glb"),
@@ -372,7 +368,7 @@ mod tests {
 		}
 
 		/// Live for a few ticks to let everything sort out
-		fn exit(mut exit: EventWriter<AppExit>, mut ticks: Local<u32>) {
+		fn exit(mut exit: MessageWriter<AppExit>, mut ticks: Local<u32>) {
 			*ticks += 1;
 
 			if *ticks > 3 {
@@ -380,22 +376,22 @@ mod tests {
 			}
 		}
 
-		fn validate_mesh(trigger: Trigger<OnAdd, Mesh3d>, mesh_query: Query<&Mesh3d>, asset_server: Res<AssetServer>) {
-			let handle = &mesh_query.get(trigger.target()).unwrap().0;
+		fn validate_mesh(trigger: On<Add, Mesh3d>, mesh_query: Query<&Mesh3d>, asset_server: Res<AssetServer>) {
+			let handle = &mesh_query.get(trigger.event().entity).unwrap().0;
 			validate_asset(handle, &asset_server, "Mesh");
 		}
 
 		fn validate_material(
-			trigger: Trigger<OnAdd, MeshMaterial3d<StandardMaterial>>,
+			trigger: On<Add, MeshMaterial3d<StandardMaterial>>,
 			material_query: Query<&MeshMaterial3d<StandardMaterial>>,
 			asset_server: Res<AssetServer>,
 		) {
-			let handle = &material_query.get(trigger.target()).unwrap().0;
+			let handle = &material_query.get(trigger.event().entity).unwrap().0;
 			validate_asset(handle, &asset_server, "Material");
 		}
 
-		fn validate_scene(trigger: Trigger<OnAdd, SceneRoot>, scene_query: Query<&SceneRoot>, asset_server: Res<AssetServer>) {
-			let handle = &scene_query.get(trigger.target()).unwrap().0;
+		fn validate_scene(trigger: On<Add, SceneRoot>, scene_query: Query<&SceneRoot>, asset_server: Res<AssetServer>) {
+			let handle = &scene_query.get(trigger.event().entity).unwrap().0;
 			validate_asset(handle, &asset_server, "Scene");
 		}
 

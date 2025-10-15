@@ -236,7 +236,7 @@ impl TrenchBroomConfig {
 				"root": self.material_root.s(),
 				// .D is required for WADs to work
 				"extensions": self.texture_extensions.clone(),
-				"palette": self.texture_pallette.s(),
+				"palette": self.texture_palette.s(),
 				"attribute": "wad",
 				"excludes": self.texture_exclusions.clone(),
 			},
