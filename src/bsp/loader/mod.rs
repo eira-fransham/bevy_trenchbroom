@@ -106,36 +106,40 @@ impl AssetLoader for BspLoader {
 			// #[cfg(feature = "client")]
 			// let irradiance_volume = load_irradiance_volume(&mut ctx)?;
 
-			for (model_idx, model) in bsp_models.iter().enumerate() {
-				let mut world = World::new();
+			let models = bsp_models
+				.iter()
+				.enumerate()
+				.map(|(model_idx, model)| {
+					let mut world = World::new();
 
-				for BspMesh {
-					name,
-					mesh,
-					material,
-					lightmap,
-				} in model.meshes.iter()
-				{
-					if self.tb_server.config.auto_remove_textures.contains(name) {
-						continue;
+					for BspMesh {
+						name,
+						mesh,
+						material,
+						lightmap,
+					} in model.meshes.iter()
+					{
+						if self.tb_server.config.auto_remove_textures.contains(name) {
+							continue;
+						}
+
+						let mut mesh_entity = world.spawn((
+							Name::new(name.clone()),
+							Transform::default(),
+							// TODO: Needed because of lack of `fix_gltf_coordinate_system`?
+							// .rotate_y(PI),
+							Mesh3d(mesh.clone()),
+							GenericMaterial3d(material.clone()),
+						));
+
+						if let Some(lightmap) = lightmap {
+							mesh_entity.insert(AnimatedLightingHandle(lightmap.clone()));
+						}
 					}
 
-					let mut mesh_entity = world.spawn((
-						Name::new(name.clone()),
-						Transform::default(),
-						// TODO: Needed because of lack of `fix_gltf_coordinate_system`?
-						// .rotate_y(PI),
-						Mesh3d(mesh.clone()),
-						GenericMaterial3d(material.clone()),
-					));
-
-					if let Some(lightmap) = lightmap {
-						mesh_entity.insert(AnimatedLightingHandle(lightmap.clone()));
-					}
-				}
-
-				load_context.add_labeled_asset(format!("Model{model_idx}"), Scene::new(world));
-			}
+					load_context.add_labeled_asset(format!("Model{model_idx}"), Scene::new(world))
+				})
+				.collect();
 
 			Ok(Bsp {
 				embedded_textures,
@@ -143,7 +147,8 @@ impl AssetLoader for BspLoader {
 				lightmap: lightmap.map(|lm| lm.animated_lighting),
 				#[cfg(feature = "client")]
 				irradiance_volume: None,
-				models: bsp_models,
+				raw_models: bsp_models,
+				models,
 
 				data,
 				entities,

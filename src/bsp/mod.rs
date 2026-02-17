@@ -43,7 +43,8 @@ pub struct Bsp {
 	#[cfg(feature = "client")]
 	pub irradiance_volume: Option<Handle<AnimatedLighting>>,
 	/// Models for brush entities (world geometry).
-	pub models: Vec<BspModel>,
+	pub raw_models: Vec<BspModel>,
+	pub models: Vec<Handle<Scene>>,
 	/// The source data this BSP's assets was created from.
 	pub data: BspData,
 	/// The entities parsed from the map that was used to construct the scene.
