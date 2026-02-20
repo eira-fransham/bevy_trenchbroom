@@ -53,7 +53,7 @@ pub fn read_rotation_from_entity(src_entity: &QuakeMapEntity) -> Result<Quat, Qu
 		Err(err) => return Err(err),
 	};
 
-	Ok(bevy_rot.bevy_to_trenchbroom())
+	Ok(bevy_rot)
 }
 
 #[cfg(test)]

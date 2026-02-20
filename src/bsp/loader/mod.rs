@@ -137,7 +137,13 @@ impl AssetLoader for BspLoader {
 				.collect();
 
 			let trenchbroom_to_bevy_scale = self.tb_server.config.scale.recip();
-			let trenchbroom_to_bevy_mat3 = trenchbroom_to_bevy_scale * Mat3::from_cols_array_2d(&[[0., -1., 0.], [0., 0., 1.], [-1., 0., 0.]]);
+			let trenchbroom_to_bevy_mat3 = trenchbroom_to_bevy_scale
+				* Mat3 {
+					x_axis: Vec3::NEG_Y,
+					y_axis: Vec3::Z,
+					z_axis: Vec3::NEG_X,
+				}
+				.transpose();
 
 			Ok(Bsp {
 				embedded_textures,
