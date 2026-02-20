@@ -70,7 +70,7 @@ impl QuakeClass for Transform {
 
 	fn class_spawn(view: &mut QuakeClassSpawnView) -> anyhow::Result<()> {
 		view.world.entity_mut(view.entity).insert(Transform {
-			translation: read_translation_from_entity(view.src_entity, view.tb_config)?,
+			translation: read_translation_from_entity(view.src_entity)?,
 			rotation: read_rotation_from_entity(view.src_entity)?,
 			scale: match view.src_entity.get::<f32>("scale") {
 				Ok(scale) => Vec3::splat(scale),
@@ -95,19 +95,19 @@ impl QuakeClass for Name {
 		size: None,
 		decal: false,
 
-		properties: &[
-			QuakeClassProperty {
-				ty: String::PROPERTY_TYPE,
-				name: "name",
-				title: Some("Name"),
-				description: None,
-				default_value: Some(String::new),
-			},
-		],
+		properties: &[QuakeClassProperty {
+			ty: String::PROPERTY_TYPE,
+			name: "name",
+			title: Some("Name"),
+			description: None,
+			default_value: Some(String::new),
+		}],
 	};
 
 	fn class_spawn(view: &mut QuakeClassSpawnView) -> anyhow::Result<()> {
-		view.world.entity_mut(view.entity).insert(Name::new(view.src_entity.get::<String>("name")?));
+		view.world
+			.entity_mut(view.entity)
+			.insert(Name::new(view.src_entity.get::<String>("name")?));
 		Ok(())
 	}
 }

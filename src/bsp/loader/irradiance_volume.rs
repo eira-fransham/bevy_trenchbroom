@@ -20,10 +20,10 @@ pub fn load_irradiance_volume(ctx: &mut BspLoadCtx, world: &mut World) -> anyhow
 	// Calculate irradiance volumes for light grids.
 	// Right now we just have one big irradiance volume for the entire map, this means the volume has to be less than 682 (2048/3 (z axis is 3x)) cells in size.
 	Ok(if let Some(light_grid) = &ctx.data.bspx.light_grid_octree {
-		let grid_mins = config.to_bevy_space(light_grid.mins);
+		let grid_mins = light_grid.mins;
 		// We add 1 to the size because the volume has to be offset by half a step to line up, and as such sometimes doesn't fill the full space
 		let grid_size = light_grid.size.yzx() + 1;
-		let grid_step = config.to_bevy_space(light_grid.step);
+		let grid_step = light_grid.step;
 
 		let mut input_builders: [Option<IrradianceVolumeBuilder>; 4] = [(); 4].map(|_| None);
 

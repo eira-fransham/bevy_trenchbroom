@@ -53,7 +53,7 @@ impl AssetLoader for QuakeMapLoader {
 			reader.read_to_string(&mut input).await?;
 
 			let quake_util_map = quake_util::qmap::parse(&mut io::Cursor::new(input))?;
-			let mut entities = QuakeMapEntities::from_quake_util(quake_util_map, &self.tb_server.config);
+			let mut entities = QuakeMapEntities::from_quake_util(quake_util_map);
 
 			let mut mesh_handles = Vec::new();
 			let mut brush_lists = HashMap::default();
@@ -143,7 +143,7 @@ impl AssetLoader for QuakeMapLoader {
 						let mut mesh = generate_mesh_from_brush_polygons(&polygons, &self.tb_server.config, texture_size);
 
 						if let Ok(origin_point) = map_entity.get::<Vec3>("origin") {
-							mesh = mesh.translated_by(self.tb_server.config.to_bevy_space(-origin_point));
+							mesh = mesh.translated_by(-origin_point);
 						}
 
 						let mesh_entity = world.spawn((Name::new(texture.s()), Transform::default())).id();

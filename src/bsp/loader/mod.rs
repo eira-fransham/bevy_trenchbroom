@@ -5,7 +5,6 @@ pub use irradiance_volume::IrradianceVolumeMultipliers;
 #[cfg(feature = "client")]
 mod lightmap;
 mod models;
-mod scene;
 mod textures;
 
 use bevy::{
@@ -75,7 +74,7 @@ impl AssetLoader for BspLoader {
 
 			let quake_util_map =
 				quake_util::qmap::parse(&mut io::Cursor::new(fixed_entities_lump)).map_err(|err| anyhow!("Parsing entities: {err}"))?;
-			let entities = QuakeMapEntities::from_quake_util(quake_util_map, &self.tb_server.config);
+			let entities = QuakeMapEntities::from_quake_util(quake_util_map);
 
 			let mut ctx = BspLoadCtx {
 				loader: self,
@@ -88,7 +87,6 @@ impl AssetLoader for BspLoader {
 
 			let embedded_textures = EmbeddedTextures::setup(&mut ctx).await?;
 
-			// HACK: Lightmaps seem to crash Bevy after a few seconds(?)
 			#[cfg(feature = "client")]
 			let lightmap = BspLightmap::compute(&mut ctx)?;
 			#[cfg(not(feature = "client"))]
@@ -96,9 +94,6 @@ impl AssetLoader for BspLoader {
 
 			let models = compute_models(&mut ctx, &lightmap, &embedded_textures).await;
 			let embedded_textures = embedded_textures.finalize(&mut ctx);
-
-			// HACK: This should not be removed entirely! It's just that seismon doesn't need it.
-			// let mut world = initialize_scene(&mut ctx, &mut models)?;
 
 			let bsp_models = finalize_models(&mut ctx, models)?;
 
@@ -141,6 +136,9 @@ impl AssetLoader for BspLoader {
 				})
 				.collect();
 
+			let trenchbroom_to_bevy_scale = self.tb_server.config.scale.recip();
+			let trenchbroom_to_bevy_mat3 = trenchbroom_to_bevy_scale * Mat3::from_cols_array_2d(&[[0., -1., 0.], [0., 0., 1.], [-1., 0., 0.]]);
+
 			Ok(Bsp {
 				embedded_textures,
 				#[cfg(feature = "client")]
@@ -152,6 +150,7 @@ impl AssetLoader for BspLoader {
 
 				data,
 				entities,
+				transform: Transform::from_matrix(Mat4::from_mat3(trenchbroom_to_bevy_mat3)),
 			})
 		})
 	}

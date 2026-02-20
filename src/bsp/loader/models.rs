@@ -6,21 +6,12 @@ use bsp::*;
 #[derive(Default)]
 pub struct InternalModel {
 	pub meshes: Vec<InternalModelMesh>,
-	/// Entity to apply [`Brushes`] to. Should probably only be one of these.
-	pub entity: Option<Entity>,
 }
 
 // We need to run spawners before adding model assets because they have mutable access to meshes
 pub struct InternalModelMesh {
 	pub texture: MapGeometryTexture,
 	pub mesh: Mesh,
-	/// Entity to apply [`Mesh3d`] to. Should probably only be one of these.
-	pub entity: Option<Entity>,
-}
-
-#[inline]
-fn convert_vec3(config: &TrenchBroomConfig) -> impl Fn(qbsp::glam::Vec3) -> Vec3 + '_ {
-	|x| config.to_bevy_space(Vec3::from_array(x.to_array()))
 }
 
 #[cfg(feature = "client")]
@@ -50,14 +41,8 @@ pub async fn compute_models<'a, 'lc: 'a>(
 		for exported_mesh in model_output.meshes {
 			let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, config.brush_mesh_asset_usages);
 
-			mesh.insert_attribute(
-				Mesh::ATTRIBUTE_POSITION,
-				exported_mesh.positions.into_iter().map(convert_vec3(config)).collect_vec(),
-			);
-			mesh.insert_attribute(
-				Mesh::ATTRIBUTE_NORMAL,
-				exported_mesh.normals.into_iter().map(convert_vec3(config)).collect_vec(),
-			);
+			mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, exported_mesh.positions);
+			mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, exported_mesh.normals);
 			mesh.insert_attribute(
 				Mesh::ATTRIBUTE_UV_0,
 				exported_mesh.uvs.iter().map(qbsp::glam::Vec2::to_array).collect_vec(),
@@ -106,7 +91,6 @@ pub async fn compute_models<'a, 'lc: 'a>(
 					flags: exported_mesh.tex_flags,
 				},
 				mesh,
-				entity: None,
 			});
 		}
 

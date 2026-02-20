@@ -31,7 +31,7 @@ pub struct QuakeMap {
 #[derive(Reflect, Debug, Clone, Default, Deref, DerefMut)]
 pub struct QuakeMapEntities(pub Vec<QuakeMapEntity>);
 impl QuakeMapEntities {
-	pub fn from_quake_util(qmap: quake_util::qmap::QuakeMap, config: &TrenchBroomConfig) -> Self {
+	pub fn from_quake_util(qmap: quake_util::qmap::QuakeMap) -> Self {
 		let mut entities = Self::default();
 		entities.reserve(qmap.entities.len());
 
@@ -44,7 +44,7 @@ impl QuakeMapEntities {
 
 			entities.push(QuakeMapEntity {
 				properties,
-				brushes: entity.brushes.iter().map(|brush| Brush::from_quake_util(brush, config)).collect(),
+				brushes: entity.brushes.iter().map(Brush::from_quake_util).collect(),
 			});
 		}
 

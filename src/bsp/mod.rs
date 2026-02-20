@@ -49,6 +49,8 @@ pub struct Bsp {
 	pub data: BspData,
 	/// The entities parsed from the map that was used to construct the scene.
 	pub entities: QuakeMapEntities,
+	/// The transform to apply to the models to convert them to Bevy's coordinate system.
+	pub transform: Transform,
 }
 
 /// One individual mesh of a [`BspModel`].

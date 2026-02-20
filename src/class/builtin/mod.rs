@@ -12,7 +12,9 @@ flat! {
 use bevy::app::plugin_group;
 use fgd::FgdType;
 use qmap::{QuakeEntityError, QuakeEntityErrorResultExt};
-use util::{angle_to_quat, angles_to_quat, mangle_to_quat};
+use util::{angle_to_quat_bevy, angles_to_quat_bevy, mangle_to_quat_bevy};
+
+use crate::util::BevyTrenchbroomCoordinateConversions;
 
 use super::*;
 
@@ -27,29 +29,31 @@ plugin_group! {
 }
 
 /// Reads the `origin` property, converting it to Bevy's coordinate space. Defaults to [`Vec3::ZERO`].
-pub fn read_translation_from_entity(src_entity: &QuakeMapEntity, tb_config: &TrenchBroomConfig) -> Result<Vec3, QuakeEntityError> {
-	Ok(tb_config.to_bevy_space(src_entity.get::<Vec3>("origin").with_default(Vec3::ZERO)?))
+pub fn read_translation_from_entity(src_entity: &QuakeMapEntity) -> Result<Vec3, QuakeEntityError> {
+	Ok(src_entity.get::<Vec3>("origin").with_default(Vec3::ZERO)?)
 }
 
 /// Tries to read `mangle`, `angles`, and `angle` in that order to produce a quaternion. Defaults to [`Quat::IDENTITY`].
 pub fn read_rotation_from_entity(src_entity: &QuakeMapEntity) -> Result<Quat, QuakeEntityError> {
-	Ok(match src_entity.get::<Vec3>("mangle") {
+	let bevy_rot = match src_entity.get::<Vec3>("mangle") {
 		// According to TrenchBroom docs https://trenchbroom.github.io/manual/latest/#editing-objects
 		// “mangle” is interpreted as “yaw pitch roll” if the entity classnames begins with “light”, otherwise it’s a synonym for “angles”
 		Ok(x) => {
 			if src_entity.classname().map(|s| s.starts_with("light")) == Ok(true) {
-				mangle_to_quat(x)
+				mangle_to_quat_bevy(x)
 			} else {
-				angles_to_quat(x)
+				angles_to_quat_bevy(x)
 			}
 		}
 		Err(QuakeEntityError::RequiredPropertyNotFound { .. }) => match src_entity.get::<Vec3>("angles") {
-			Ok(x) => angles_to_quat(x),
-			Err(QuakeEntityError::RequiredPropertyNotFound { .. }) => angle_to_quat(src_entity.get::<f32>("angle").with_default(0.)?),
+			Ok(x) => angles_to_quat_bevy(x),
+			Err(QuakeEntityError::RequiredPropertyNotFound { .. }) => angle_to_quat_bevy(src_entity.get::<f32>("angle").with_default(0.)?),
 			Err(err) => return Err(err),
 		},
 		Err(err) => return Err(err),
-	})
+	};
+
+	Ok(bevy_rot.bevy_to_trenchbroom())
 }
 
 #[cfg(test)]
