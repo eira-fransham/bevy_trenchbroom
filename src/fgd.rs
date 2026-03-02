@@ -475,7 +475,12 @@ impl<
 		Box::new((0..enum_info.variant_len()).flat_map(|variant_idx| {
 			let variant = enum_info.variant_at(variant_idx)?;
 			let Ok(variant) = variant.as_unit_variant() else { return None };
+
+			#[cfg(feature = "documentation")]
 			let title = variant.docs().map(str::trim).unwrap_or(variant.name());
+			#[cfg(not(feature = "documentation"))]
+			let title = variant.name();
+
 			let value = T::from_reflect(&DynamicEnum::new(variant.name(), DynamicVariant::Unit))?;
 
 			Some((BitFlags::from_flag(value).bits().into(), title))

@@ -44,7 +44,7 @@ bevy = { workspace = true, features = [
 	"bevy_scene",
 	"bevy_color",
 ] }
-bevy_reflect = { version = "0.18.0", package = "bevy_reflect", features = ["reflect_documentation"] }
+bevy_reflect = { version = "0.18.0", package = "bevy_reflect" }
 bevy_mesh = { version = "0.18.0", package = "bevy_mesh" }
 wgpu-types = "27.0.0" # Must be the same version as Bevy uses
 bevy_materialize = { version = "0.10", default-features = false, features = [
@@ -73,11 +73,12 @@ bytemuck = "1" # For special materials, must stay the same version as Bevy's
 
 [dev-dependencies]
 # For tests
-bevy = { workspace = true, features = ["png", "bevy_gltf", "reflect_auto_register"] }
+bevy = { workspace = true, features = ["png", "bevy_gltf"] }
 smol = "2"
 
 [features]
-default = ["client"]
+default = ["client", "documentation"]
 client = ["bevy/bevy_pbr", "bevy_materialize/bevy_pbr"]
 physics-integration = []
 bsp = ["dep:qbsp"]
+documentation = ["bevy_reflect/reflect_documentation"]

@@ -14,8 +14,6 @@ use fgd::FgdType;
 use qmap::{QuakeEntityError, QuakeEntityErrorResultExt};
 use util::{angle_to_quat_bevy, angles_to_quat_bevy, mangle_to_quat_bevy};
 
-use crate::util::BevyTrenchbroomCoordinateConversions;
-
 use super::*;
 
 plugin_group! {
