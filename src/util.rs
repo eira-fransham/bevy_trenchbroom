@@ -66,16 +66,25 @@ struct DummyLabeledAsset {
 	handle: UntypedHandle,
 }
 
+/// Mirror of bevy_asset's private `ErasedAssetIndex`.
+#[allow(unused)]
+struct DummyErasedAssetIndex {
+	index: bevy::asset::AssetIndex,
+	type_id: core::any::TypeId,
+}
+
 #[allow(unused)]
 struct DummyLoadContext<'a> {
 	asset_server: &'a AssetServer,
 	should_load_dependencies: bool,
 	populate_hashes: bool,
 	asset_path: AssetPath<'static>,
-	dependencies: bevy::platform::collections::HashSet<UntypedAssetId>,
+	dependencies: bevy::platform::collections::HashSet<DummyErasedAssetIndex>,
 	/// Direct dependencies used by this loader.
 	loader_dependencies: bevy::platform::collections::HashMap<AssetPath<'static>, AssetHash>,
-	labeled_assets: bevy::platform::collections::HashMap<CowArc<'static, str>, DummyLabeledAsset>,
+	labeled_assets: Vec<DummyLabeledAsset>,
+	label_to_asset_index: bevy::platform::collections::HashMap<CowArc<'static, str>, usize>,
+	asset_id_to_asset_index: bevy::platform::collections::HashMap<UntypedAssetId, usize>,
 }
 
 /// Hacks a public version of `LoadContext::new()`.
@@ -94,9 +103,13 @@ pub(crate) fn create_load_context<'a>(
 		dependencies: default(),
 		loader_dependencies: default(),
 		labeled_assets: default(),
+		label_to_asset_index: default(),
+		asset_id_to_asset_index: default(),
 	};
 
-	// SAFETY: DummyLoadContext and LoadContext are of the exact same structure, meaning they should match bits 1-1.
+	// SAFETY: DummyLoadContext (and its DummyLabeledAsset/DummyErasedAssetIndex fields) mirror the exact field types and order of
+	// bevy_asset's private LoadContext (and LabeledAsset/ErasedAssetIndex), meaning they should match bits 1-1.
+	// This must be re-checked against `bevy_asset/src/loader.rs` whenever Bevy is updated.
 	unsafe { mem::transmute(dummy) }
 }
 
@@ -129,9 +142,8 @@ impl<K: Eq + Hash + Clone + fmt::Debug + fmt::Display> TextureSizeCache<K> {
 			Entry::Vacant(x) => x.insert('size_searcher: {
 				for ext in &config.texture_extensions {
 					match load_context
-						.loader()
-						.immediate()
-						.load::<Image>(config.material_root.join(format!("{texture}.{ext}")))
+						.load_builder()
+						.load_value::<Image>(config.material_root.join(format!("{texture}.{ext}")))
 						.await
 					{
 						Ok(image) => break 'size_searcher image.take().size(),

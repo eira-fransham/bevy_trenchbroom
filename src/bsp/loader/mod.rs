@@ -132,7 +132,7 @@ impl AssetLoader for BspLoader {
 						}
 					}
 
-					load_context.add_labeled_asset(format!("Model{model_idx}"), Scene::new(world))
+					load_context.add_labeled_asset(format!("Model{model_idx}"), WorldAsset::new(world))
 				})
 				.collect();
 
@@ -198,7 +198,7 @@ mod tests {
 			.init_asset::<Mesh>()
 			.init_asset::<BrushHullsAsset>()
 			.init_asset::<BrushesAsset>()
-			.init_asset::<Scene>()
+			.init_asset::<WorldAsset>()
 			.init_asset::<Bsp>()
 			.init_asset_loader::<BspLoader>()
 		;
@@ -206,6 +206,7 @@ mod tests {
 		smol::block_on(async {
 			app.world()
 				.resource::<AssetServer>()
+				.load_builder()
 				.load_untyped_async("maps/example.bsp")
 				.await
 				.unwrap();

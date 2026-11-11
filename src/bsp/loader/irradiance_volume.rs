@@ -121,7 +121,7 @@ pub fn load_irradiance_volume(ctx: &mut BspLoadCtx, world: &mut World) -> anyhow
 
 		world.spawn((
 			Name::new("Light Grid Irradiance Volume"),
-			LightProbe,
+			LightProbe::default(),
 			AnimatedLightingHandle(animated_lighting_handle.clone()),
 			Transform {
 				translation: grid_mins + scale / 2. - Vec3::from_array(grid_step.to_array()) / 2.,
