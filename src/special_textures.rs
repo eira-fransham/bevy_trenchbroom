@@ -25,8 +25,8 @@ use crate::*;
 pub struct SpecialTexturesPlugin;
 impl Plugin for SpecialTexturesPlugin {
 	fn build(&self, app: &mut App) {
-		embedded_asset!(app, "liquid.wgsl");
-		embedded_asset!(app, "quake_sky.wgsl");
+		embedded_asset!(app, "liquid.wesl");
+		embedded_asset!(app, "quake_sky.wesl");
 
 		#[rustfmt::skip]
 		app
@@ -187,7 +187,7 @@ pub struct LiquidMaterialExt {
 }
 impl MaterialExtension for LiquidMaterialExt {
 	fn fragment_shader() -> bevy::shader::ShaderRef {
-		"embedded://bevy_trenchbroom/liquid.wgsl".into()
+		"embedded://bevy_trenchbroom/liquid.wesl".into()
 	}
 }
 
@@ -258,7 +258,7 @@ impl QuakeSkyKey {
 }
 impl Material for QuakeSkyMaterial {
 	fn fragment_shader() -> bevy::shader::ShaderRef {
-		"embedded://bevy_trenchbroom/quake_sky.wgsl".into()
+		"embedded://bevy_trenchbroom/quake_sky.wesl".into()
 	}
 
 	fn alpha_mode(&self) -> AlphaMode {

@@ -18,7 +18,7 @@ use bevy::{
 
 use crate::*;
 
-/// Max animators passed to a shader, must match value in `composite_lightmaps.wgsl`.
+/// Max animators passed to a shader, must match value in `composite_lightmaps.wesl`.
 pub const MAX_ANIMATORS: usize = 255;
 /// Max number of steps in a [`LightingAnimator`].
 pub const MAX_LIGHTMAP_FRAMES: usize = 64;
@@ -45,8 +45,8 @@ pub(crate) fn new_animated_lighting_output_image(extent: Extent3d, dimension: Te
 pub struct BspLightingPlugin;
 impl Plugin for BspLightingPlugin {
 	fn build(&self, app: &mut App) {
-		embedded_asset!(app, "composite_lightmaps.wgsl");
-		embedded_asset!(app, "composite_irradiance_volumes.wgsl");
+		embedded_asset!(app, "composite_lightmaps.wesl");
+		embedded_asset!(app, "composite_irradiance_volumes.wesl");
 
 		#[rustfmt::skip]
 		app
@@ -191,6 +191,7 @@ pub struct AnimatedLightingBindGroups {
 }
 
 #[derive(Resource, ExtractResource, Clone)]
+#[extract_app(RenderApp)]
 pub struct AnimatedLightingPipeline {
 	lightmap_bind_group_layout: BindGroupLayout,
 	irradiance_volume_bind_group_layout: BindGroupLayout,
@@ -252,20 +253,22 @@ impl FromWorld for AnimatedLightingPipeline {
 			label: Some("Composite Lightmap Images Pipeline".into()),
 			layout: vec![lightmap_bind_group_layout.clone(), globals_bind_group_layout.clone()],
 			immediate_size: 0,
-			shader: world.load_asset("embedded://bevy_trenchbroom/bsp/lighting/composite_lightmaps.wgsl"),
+			shader: world.load_asset("embedded://bevy_trenchbroom/bsp/lighting/composite_lightmaps.wesl"),
 			shader_defs: vec![],
 			entry_point: Some("main".into()),
 			zero_initialize_workgroup_memory: true,
+			constants: vec![],
 		});
 
 		let irradiance_volume_pipeline = pipeline_cache.queue_compute_pipeline(ComputePipelineDescriptor {
 			label: Some("Composite Irradiance Volume Images Pipeline".into()),
 			layout: vec![irradiance_volume_bind_group_layout.clone(), globals_bind_group_layout.clone()],
 			immediate_size: 0,
-			shader: world.load_asset("embedded://bevy_trenchbroom/bsp/lighting/composite_irradiance_volumes.wgsl"),
+			shader: world.load_asset("embedded://bevy_trenchbroom/bsp/lighting/composite_irradiance_volumes.wesl"),
 			shader_defs: vec![],
 			entry_point: Some("main".into()),
 			zero_initialize_workgroup_memory: true,
+			constants: vec![],
 		});
 
 		Self {

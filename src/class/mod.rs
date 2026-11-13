@@ -2,7 +2,7 @@ pub mod builtin;
 pub mod scene_hooks;
 
 use bevy::{asset::LoadContext, platform::collections::HashSet};
-use bevy_reflect::{FromType, GetTypeRegistration, TypeRegistry};
+use bevy_reflect::{CreateTypeData, GetTypeRegistration, TypeRegistry};
 use qmap::QuakeMapEntity;
 
 use crate::{geometry::MapGeometryTexture, util::MapFileType, *};
@@ -298,8 +298,8 @@ pub struct ReflectQuakeClass {
 	pub erased_class: &'static ErasedQuakeClass,
 	pub enabled: bool,
 }
-impl<T: QuakeClass> FromType<T> for ReflectQuakeClass {
-	fn from_type() -> Self {
+impl<T: QuakeClass> CreateTypeData<T> for ReflectQuakeClass {
+	fn create_type_data(_: ()) -> Self {
 		Self {
 			erased_class: T::ERASED_CLASS,
 			enabled: true,

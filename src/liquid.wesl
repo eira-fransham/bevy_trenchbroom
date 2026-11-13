@@ -1,27 +1,26 @@
-#import bevy_pbr::{
+import bevy_pbr::render::{
 	pbr_fragment::pbr_input_from_standard_material,
 	pbr_functions::alpha_discard,
 	mesh_view_bindings::globals,
-}
+};
 
-#ifdef PREPASS_PIPELINE
-#import bevy_pbr::{
-	prepass_io::{VertexOutput, FragmentOutput},
-	pbr_deferred_functions::deferred_output,
-}
-#else
-#import bevy_pbr::{
+@if(PREPASS_PIPELINE)
+import bevy_pbr::{
+	prepass::io::{VertexOutput, FragmentOutput},
+	deferred::functions::deferred_output,
+};
+@else
+import bevy_pbr::render::{
 	forward_io::{VertexOutput, FragmentOutput},
 	pbr_functions::{apply_pbr_lighting, main_pass_post_lighting_processing},
-}
-#endif
+};
 
 struct LiquidMaterial {
 	magnitude: f32,
 	cycles: f32,
 }
 
-@group(#{MATERIAL_BIND_GROUP}) @binding(100) var<uniform> material: LiquidMaterial;
+@group(constants::MATERIAL_BIND_GROUP) @binding(100) var<uniform> material: LiquidMaterial;
 
 @fragment
 fn fragment(
@@ -33,15 +32,16 @@ fn fragment(
 	
 	var pbr_input = pbr_input_from_standard_material(in, is_front);
 
-	pbr_input.material.base_color = alpha_discard(pbr_input.material, pbr_input.material.base_color);
+	pbr_input.material.base_color = alpha_discard(pbr_input.material.flags, pbr_input.material.alpha_cutoff, pbr_input.material.base_color);
 
-#ifdef PREPASS_PIPELINE
+@if(PREPASS_PIPELINE)
 	let out = deferred_output(in, pbr_input);
-#else
+@if(!PREPASS_PIPELINE)
 	var out: FragmentOutput;
+@if(!PREPASS_PIPELINE)
 	out.color = apply_pbr_lighting(pbr_input);
+@if(!PREPASS_PIPELINE)
 	out.color = main_pass_post_lighting_processing(pbr_input, out.color);
-#endif
 
 	return out;
 }

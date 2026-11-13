@@ -1,5 +1,4 @@
 use avian3d::prelude::*;
-use bevy::math::*;
 use bevy::prelude::*;
 use bevy_trenchbroom::config::WriteTrenchBroomConfigOnStartPlugin;
 use bevy_trenchbroom::prelude::*;
@@ -65,7 +64,7 @@ fn setup_scene(mut commands: Commands, asset_server: Res<AssetServer>) {
 		Transform::from_xyz(-5., 0., 0.),
 	));
 	commands.spawn((
-		WorldAssetRoot(asset_server.load("maps/example.bsp#Scene")),
+		WorldAssetRoot(asset_server.load("maps/example.bsp#Model0")),
 		Transform::from_xyz(5., 0., 0.),
 	));
 

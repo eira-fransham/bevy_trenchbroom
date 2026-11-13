@@ -1,6 +1,5 @@
-#import bevy_trenchbroom::composite_lightmaps::MAX_ANIMATORS
-#import bevy_trenchbroom::composite_lightmaps::Animator
-#import bevy_render::globals::Globals
+import bevy_trenchbroom::bsp::lighting::composite_lightmaps::{MAX_ANIMATORS, Animator};
+import bevy_render::globals::Globals;
 
 @group(0) @binding(0) var input_texture_0: texture_3d<f32>;
 @group(0) @binding(1) var input_texture_1: texture_3d<f32>;
