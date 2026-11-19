@@ -81,13 +81,15 @@ impl Plugin for BspLightingPlugin {
 }
 impl BspLightingPlugin {
 	/// Inserts [`Lightmap`] components into entities with [`AnimatedLighting`].
+	///
+	/// BSP meshes already get their [`Lightmap`] at load time; this handles [`AnimatedLightingHandle`]s added afterwards.
 	pub fn insert_animated_lightmaps(
 		mut commands: Commands,
-		query: Query<(Entity, &AnimatedLightingHandle), (Without<Lightmap>, Without<IrradianceVolume>)>,
+		mut query: Query<(Entity, &AnimatedLightingHandle, Option<&mut Mesh3d>), (Without<Lightmap>, Without<IrradianceVolume>)>,
 		animated_lighting_assets: Res<Assets<AnimatedLighting>>,
 		tb_server: Res<TrenchBroomServer>,
 	) {
-		for (entity, animated_lightmap) in &query {
+		for (entity, animated_lightmap, mesh) in &mut query {
 			let Some(animated_lighting) = animated_lighting_assets.get(&animated_lightmap.0) else { continue };
 
 			match animated_lighting.ty {
@@ -97,6 +99,12 @@ impl BspLightingPlugin {
 						uv_rect: Rect::new(0., 0., 1., 1.),
 						bicubic_sampling: tb_server.config.bicubic_lightmap_filtering,
 					});
+
+					// Bevy only re-specializes a mesh's pipeline on `Mesh3d`/`MeshMaterial3d` changes, not `Changed<Lightmap>`.
+					// If the mesh was already specialized without a lightmap, it would stay unlit, so force re-specialization.
+					if let Some(mut mesh) = mesh {
+						mesh.set_changed();
+					}
 				}
 				AnimatedLightingType::IrradianceVolume => {
 					commands.entity(entity).insert(IrradianceVolume {

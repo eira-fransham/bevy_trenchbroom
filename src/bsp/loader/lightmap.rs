@@ -13,6 +13,8 @@ const WRITE_DEBUG_FILES: bool = false;
 
 pub struct BspLightmap {
 	pub animated_lighting: Handle<AnimatedLighting>,
+	/// The composited output image of [`Self::animated_lighting`], used directly as the mesh [`Lightmap`](bevy::pbr::Lightmap).
+	pub output: Handle<Image>,
 	pub uv_map: LightmapUvMap,
 }
 
@@ -96,7 +98,7 @@ impl BspLightmap {
 					"LightmapAnimator".s(),
 					AnimatedLighting {
 						ty: AnimatedLightingType::Lightmap,
-						output,
+						output: output.clone(),
 						input,
 						styles,
 					},
@@ -104,6 +106,7 @@ impl BspLightmap {
 
 				Ok(Some(Self {
 					animated_lighting: handle,
+					output,
 					uv_map: atlas.uvs,
 				}))
 			}

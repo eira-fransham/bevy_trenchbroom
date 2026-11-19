@@ -101,6 +101,16 @@ impl AssetLoader for BspLoader {
 			// #[cfg(feature = "client")]
 			// let irradiance_volume = load_irradiance_volume(&mut ctx)?;
 
+			// Inserted directly on each mesh entity rather than waiting for `BspLightingPlugin::insert_animated_lightmaps`,
+			// so that the `Lightmap` is present before Bevy first specializes the mesh's pipeline.
+			// Bevy doesn't re-specialize on `Changed<Lightmap>`, so a late insert can leave the mesh unlit.
+			#[cfg(feature = "client")]
+			let lightmap_component = lightmap.as_ref().map(|lm| bevy::pbr::Lightmap {
+				image: lm.output.clone(),
+				uv_rect: Rect::new(0., 0., 1., 1.),
+				bicubic_sampling: self.tb_server.config.bicubic_lightmap_filtering,
+			});
+
 			let models = bsp_models
 				.iter()
 				.enumerate()
@@ -129,6 +139,11 @@ impl AssetLoader for BspLoader {
 
 						if let Some(lightmap) = lightmap {
 							mesh_entity.insert(AnimatedLightingHandle(lightmap.clone()));
+
+							#[cfg(feature = "client")]
+							if let Some(lightmap_component) = &lightmap_component {
+								mesh_entity.insert(lightmap_component.clone());
+							}
 						}
 					}
 
