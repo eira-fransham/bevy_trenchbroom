@@ -159,6 +159,14 @@ impl TrenchBroomConfig {
 				material.alpha_mode = alpha_mode;
 			}
 
+			// Set here rather than relying on `CorePlugin::set_lightmap_exposure` patching it after the material is added:
+			// the render world can extract the material with the default exposure first, and the later modification
+			// doesn't reliably reach it, leaving lightmapped meshes looking unlit.
+			#[cfg(feature = "client")]
+			if let Some(exposure) = view.tb_config().lightmap_exposure {
+				material.lightmap_exposure = exposure;
+			}
+
 			#[cfg(feature = "client")]
 			let generic_material = match special_textures::load_special_texture(&mut view, &material) {
 				Some(v) => v,
